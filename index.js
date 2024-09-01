@@ -8,7 +8,7 @@ const cors = require("cors");
 const baseURL = "https://iosmirror.cc/";
 
 const corsOptions = {
-//   origin: "https://iosmirror.cc/", // Replace with the origin(s) you want to allow
+  //   origin: "https://iosmirror.cc/", // Replace with the origin(s) you want to allow
   credentials: true, // Allow sending cookies and other credentials
   allowedHeaders: [
     "Origin",
@@ -37,8 +37,8 @@ app.get("/", (req, res) => {
   res.send(info);
 });
 
-app.get("/home", async (req, res) => {
-  const allCouponURL = `${baseURL}movies`;
+app.get("/:type", async (req, res) => {
+  const allCouponURL = `${baseURL}${req.params.type}`;
 
   try {
     const { data: html } = await axios.get(allCouponURL);
@@ -48,31 +48,44 @@ app.get("/home", async (req, res) => {
     const top10Elements = [];
 
     // Process tray containers
-    $('.tray-container').each((index, element) => {
-      const categoryTitle = $(element).find('.tray-wrapper > .tray-carousel > .mobile-tray-title > .col-container > .tray-title > .tray-link').text().trim();
+    $(".tray-container").each((index, element) => {
+      const categoryTitle = $(element)
+        .find(
+          ".tray-wrapper > .tray-carousel > .mobile-tray-title > .col-container > .tray-title > .tray-link"
+        )
+        .text()
+        .trim();
       const movies = [];
 
-      $(element).find('.tray-wrapper > .tray-carousel > .container > .middle-mob-tray-container > .inner-mob-tray-container > article').each((i, movie) => {
-        const movieTitle = $(movie).find('a > div > div img').attr('data-src');
-        const postID = $(movie).find('a').attr('data-post');
-        const dataTime = $('body').attr('data-time');
-        movies.push({ movieTitle, postID, dataTime });
-      });
+      $(element)
+        .find(
+          ".tray-wrapper > .tray-carousel > .container > .middle-mob-tray-container > .inner-mob-tray-container > article"
+        )
+        .each((i, movie) => {
+          const movieTitle = $(movie)
+            .find("a > div > div img")
+            .attr("data-src");
+          const postID = $(movie).find("a").attr("data-post");
+          const dataTime = $("body").attr("data-time");
+          movies.push({ movieTitle, postID, dataTime });
+        });
 
       trayContainers.push({ categoryTitle, movies });
     });
 
     // Process top10 elements
-    $('.top10').each((index, element) => {
-      const categoryTitle = $(element).find('span').text().trim();
+    $(".top10").each((index, element) => {
+      const categoryTitle = $(element).find("span").text().trim();
       const movies = [];
 
-      $(element).find('.top10-posts > .top10-post').each((i, movie) => {
-        const movieTitle = $(movie).find('.top10-img > img').attr('data-src');
-        const postID = $(movie).attr('data-post');
-        const dataTime = $('body').attr('data-time');
-        movies.push({ movieTitle, postID, dataTime });
-      });
+      $(element)
+        .find(".top10-posts > .top10-post")
+        .each((i, movie) => {
+          const movieTitle = $(movie).find(".top10-img > img").attr("data-src");
+          const postID = $(movie).attr("data-post");
+          const dataTime = $("body").attr("data-time");
+          movies.push({ movieTitle, postID, dataTime });
+        });
 
       top10Elements.push({ categoryTitle, movies });
     });
@@ -80,61 +93,74 @@ app.get("/home", async (req, res) => {
     // Return the extracted data
     res.json({
       trayContainers,
-      top10Elements
+      top10Elements,
     });
   } catch (err) {
-    console.error('Error fetching data:', err);
-    res.status(500).send('Internal Server Error');
+    console.error("Error fetching data:", err);
+    res.status(500).send("Internal Server Error");
   }
 });
-// Function to perform scraping
-
-
-// Define the endpoint
-// app.get('/details/:postID', async (req, res) => {
-//     const url = `${baseURL}watch/${req.params.postID}`; // Get the URL from the query parameters
-//     const { data: html } = await axios.get(url);
-//     const $ = cheerio.load(html);
-//     const result =[];
-//     if (!url) {
-//         $('#exampleModalScrollable > .modal-dialog modal-dialog-scrollable > .modal-content').each((index, element) => {
-//             const image = $(element).find('.modal-header > .modal-img > .modal-img-poster').attr('src');
-//             const title = $(element).find('.modal-body modal-body-d > .model-title ').text;
-//             const watch = $(element).find('.modal-body modal-body-d > .model-info > .model-match').text;
-//             const year = $(element).find('.modal-body modal-body-d > .model-info > .model-year').text;
-//             const ua = $(element).find('.modal-body modal-body-d > .model-info > .model-ua').text;
-//             const runtime = $(element).find('.modal-body modal-body-d > .model-info > .model-runtime').text;
-//             const hdsd = $(element).find('.modal-body modal-body-d > .model-info > .model-hdsd').text;
-          
-      
-           
-//             result.push({ categoryTitle, movies });
-//           });
-//         }
-//         res.json(result);
-// });
 
 async function fetchData(apiUrl) {
-    try {
-        // Fetch the data from the API
-        const response = await axios.get(apiUrl);
+  try {
+    // Fetch the data from the API
+    const response = await axios.get(apiUrl);
 
-        // Return the data as JSON
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        throw error;
-    }
+    // Return the data as JSON
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw error;
+  }
 }
-app.get('/postData/:postID/:timeData', async (req, res) => {
-    const apiUrl = `https://iosmirror.cc/post.php?id=${req.params.postID}&t=${req.params.timeData}`; // The API URL
+app.get("/postData", async (req, res) => {
+  const { postID, timeData } = req.query;
+  if (!postID || !timeData) {
+    return res.status(400).json({ error: "Missing required query parameters" });
+  }
 
-    try {
-        const data = await fetchData(apiUrl);
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch data' });
-    }
+  const apiUrl = `https://iosmirror.cc/post.php?id=${postID}&t=${timeData}`;
+
+  try {
+    const data = await fetchData(apiUrl);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch data" });
+  }
+});
+
+app.get("/episodes", async (req, res) => {
+  const { postID, timeData, seriesID } = req.query;
+  if (!postID || !timeData) {
+    return res.status(400).json({ error: "Missing required query parameters" });
+  }
+
+  let apiUrl = `https://iosmirror.cc/post.php?id=${postID}&t=${timeData}`;
+  if (seriesID) {
+    apiUrl += `&s=${seriesID}`;
+  }
+
+  try {
+    const data = await fetchData(apiUrl);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch data" });
+  }
+});
+app.get("/playlist", async (req, res) => {
+  const { postID, timeData, episodeName } = req.query;
+  if (!postID || !timeData) {
+    return res.status(400).json({ error: "Missing required query parameters" });
+  }
+
+  let apiUrl = `https://iosmirror.cc/post.php?id=${postID}&t=${episodeName}&tm=${timeData}`;
+
+  try {
+    const data = await fetchData(apiUrl);
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch data" });
+  }
 });
 
 app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
