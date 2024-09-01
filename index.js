@@ -136,7 +136,7 @@ app.get("/episodes", async (req, res) => {
     return res.status(400).json({ error: "Missing required query parameters" });
   }
 
-  let apiUrl = `https://iosmirror.cc/post.php?id=${postID}&t=${timeData}`;
+  let apiUrl = `https://iosmirror.cc/episodes.php?series=${postID}&t=${timeData}`;
   if (seriesID) {
     apiUrl += `&s=${seriesID}`;
   }
@@ -154,7 +154,7 @@ app.get("/playlist", async (req, res) => {
     return res.status(400).json({ error: "Missing required query parameters" });
   }
 
-  let apiUrl = `https://iosmirror.cc/post.php?id=${postID}&t=${episodeName}&tm=${timeData}`;
+  let apiUrl = `https://iosmirror.cc/playlist.php?id=${postID}&t=${episodeName}&tm=${timeData}`;
 
   try {
     const data = await fetchData(apiUrl);
@@ -165,3 +165,4 @@ app.get("/playlist", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
+
