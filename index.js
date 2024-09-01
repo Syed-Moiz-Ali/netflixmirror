@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
   res.send(info);
 });
 
-app.get("/:type", async (req, res) => {
+app.get("/api/:type", async (req, res) => {
   const allCouponURL = `${baseURL}${req.params.type}`;
 
   try {
@@ -102,6 +102,7 @@ app.get("/:type", async (req, res) => {
 });
 
 async function fetchData(apiUrl) {
+  console.log("the url is ", apiUrl);
   try {
     // Fetch the data from the API
     const response = await axios.get(apiUrl);
